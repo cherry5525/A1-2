@@ -52,7 +52,7 @@ pip install -r requirements.txt
 ```
 requests
 python-dotenv
-google-generativeai
+google-genai
 ```
 
 > 💡 `argparse`, `datetime`, `os`, `json`은 파이썬 기본 내장 모듈이라
@@ -209,6 +209,7 @@ REST API는 서버와 클라이언트가 정해진 규칙(HTTP)에 따라 데이
     REST: 그 창구를 만드는 "설계 원칙"
 
 📌 요청(Request)/응답(Response) 구조
+
 요청(Request) 은 클라이언트 → 서버로 보내는 편지입니다.
 - URL      : 어디로 보낼지 (예: https://api.example.com/users)
 - Method   : 무엇을 할지 (GET, POST 등)
@@ -231,7 +232,7 @@ REST API는 서버와 클라이언트가 정해진 규칙(HTTP)에 따라 데이
 
 | 메서드 | 용도 | 이 프로젝트에서의 예시 |
 |--------|------|----------------------|
-| **GET** | 데이터를 **조회**할 때 (주소창에 정보 담김) | Kakao 맛집 검색 (`?query=태안군 맛집`) |
+| **GET** | 데이터를 **조회**할 때 (주소창에 정보 담김) | Kakao 맛집 검색 (`태안군 맛집`) |
 | **POST** | 데이터를 **생성/전송**할 때 (본문에 정보 담김) | Gemini에게 프롬프트 전송 |
 
 > 💡 **핵심**: GET은 "가져오기", POST는 "보내서 처리하기"로 이해하면 쉬워요.
@@ -250,18 +251,21 @@ LLM(예: Gemini)은 기본적으로 자연어(문장) 로 답합니다. 그런�
 "부산에서 바다 보이는 맛집 추천해줘"
 
 2단계 - LLM이 JSON으로 출력:
+```json
 {
   "city": "부산",
   "keyword": "바다 보이는 맛집",
   "category": "restaurant"
 }
-
+```
 3단계 - 이 JSON을 지도/장소 검색 API의 입력으로 사용:
+```python
 # LLM 결과(json 데이터)를 그대로 검색에 활용
 result = map_api.search(
     query=llm_output["keyword"],
     region=llm_output["city"]
 )
+``` 
 
 👉 핵심: 자연어 → 구조화된 데이터(JSON) → 다음 시스템 입력
 이렇게 하면 "말"을 "기계가 바로 쓸 수 있는 데이터"로 바꿀 수 있습니다.
@@ -280,6 +284,8 @@ result = map_api.search(
 | **파싱(Parsing) 오류** | 응답이 예상한 JSON 형식이 아님 | 재시도(최대 1회) + 실패 시 "데이터 없음" 처리 |
 
 📌 코드 예시 (오류 대응)
+
+```python
 import requests
 
 try:
@@ -292,6 +298,7 @@ except requests.exceptions.HTTPError as e:
     print(f"HTTP 오류: {e}")                   # 401, 429 등
 except ValueError:
     print("파싱 오류: JSON 형식이 아님")
+```   
 
 👉 대응 원칙 요약: "오류가 날 수 있다고 가정하고, 미리 예외처리를 해둔다!"
 
